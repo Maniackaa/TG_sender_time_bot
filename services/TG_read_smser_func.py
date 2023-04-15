@@ -34,6 +34,7 @@ def read_file() -> dict:
     except Exception as err:
         logger.error('Ошибка при чтении файла')
         logger.error(err)
+        raise err
 
 
 def response_value(value:str) -> Optional[float]:
@@ -45,8 +46,9 @@ def response_value(value:str) -> Optional[float]:
     except ValueError:
         value = None
         return value
-    except Exception:
+    except Exception as err:
         logger.error('Ошибка распознавания значений', exc_info=True)
+        raise err
     finally:
         logger.debug(f'{value}->')
 

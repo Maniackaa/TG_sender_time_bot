@@ -15,7 +15,7 @@ from services.task_func import get_task_to_send, make_task_and_get_message, \
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format=u'%(filename)s:%(lineno)d #%(levelname)-8s '
            u'[%(asctime)s] - %(name)s - %(message)s')
 
@@ -32,7 +32,7 @@ def read_sender_settings():
 
 
 async def timer(bot: Bot):
-    refresh_delay = 5
+    refresh_delay = 10
     while True:
         try:
             bot_settings = read_sender_settings()
@@ -51,7 +51,6 @@ async def timer(bot: Bot):
                     tasks_to_send = get_task_to_send(session)
                     for task_to_send in tasks_to_send:
                         # Проверка на изменение данных:
-
                         # check_alarm()
 
                         # Выполнение задачи и формирование сообщения для отправки
@@ -59,7 +58,6 @@ async def timer(bot: Bot):
                                                             session,
                                                             bot_settings)
                         for alarm in alarms_list:
-
                             await bot.send_message(bot_settings.get('alarm_id'), alarm)
 
                         # Отправка сообщения в основную группу
@@ -69,6 +67,8 @@ async def timer(bot: Bot):
                     session.commit()
         except Exception as err:
             logger.error(err)
+            await bot.send_message(bot_settings.get('alarm_id'), str(err))
+            refresh_delay = 10
         await asyncio.sleep(refresh_delay)
 
 

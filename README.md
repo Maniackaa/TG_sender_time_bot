@@ -26,22 +26,23 @@ python -m pip install --upgrade pip
 ```
 
 ```
-pip install -r req.txt
+pip install -r requirements.txt
 ```
 
-Создать файл **myenv.env** в корне проекта.
+Создать файл **myenv.env** в корне проекта. Вставить ваш токен бота BOT_TOKEN <br>
 Содержимое файла:
 ```
-BOT_TOKEN='Вставить токен бота'
-ADMIN_USERNAME='Username админа'
-DB_PATH='Имя базы данных.sqlite3'  
+BOT_TOKEN='YOUR BOT TOKEN'
+ADMIN_IDS=
+DB_NAME=''
+DB_USER=''
+DB_PASSWORD=''
+DB_HOST=''
+DB_PORT=''
+DB_PATH='time_sender_bot.sqlite3'
+OPENAI_API_KEY=''
 ```
-Пример файла:
-```
-BOT_TOKEN='6123456789:AAHBkQm4xGCJ3oSTfvvcHg7213fa'
-ADMIN_USERNAME='AlexxxNik82'
-DB_PATH='db.sqlite3'
-```
+
 
 Запустить проект:
 
@@ -53,5 +54,5 @@ python bot.py
 
 
 
-2023 ©️Team №18 
+2023 ©️maniac_kaa
 
