@@ -34,37 +34,41 @@ def read_sender_settings():
 async def timer(bot: Bot):
     refresh_delay = 5
     while True:
-        bot_settings = read_sender_settings()
-        alarms_list = []
-        if bot_settings.get('is_work') != '0':
-            refresh_delay = 1
-            session = Session(bind=engine)
+        try:
             bot_settings = read_sender_settings()
+            alarms_list = []
+            if bot_settings.get('is_work') != '0':
+                refresh_delay = 1
+                session = Session(bind=engine)
+                bot_settings = read_sender_settings()
 
-            if bot_settings.get('send_test') == '1':
-                test_msg = format_smser_message(get_smser_dict())
-                await bot.send_message('-1001736797363', test_msg)
+                if bot_settings.get('send_test') == '1':
+                    test_msg = format_smser_message(get_smser_dict())
+                    await bot.send_message(bot_settings.get('alarm_id'), test_msg)
 
-            with session:
-                # Список задач на выполнение если они есть:
-                tasks_to_send = get_task_to_send(session)
-                for task_to_send in tasks_to_send:
-                    # Проверка на изменение данных:
+                with session:
+                    # Список задач на выполнение если они есть:
+                    tasks_to_send = get_task_to_send(session)
+                    for task_to_send in tasks_to_send:
+                        # Проверка на изменение данных:
 
-                    # check_alarm()
+                        # check_alarm()
 
-                    # Выполнение задачи и формирование сообщения для отправки
-                    message, alarms_list = make_task_and_get_message(task_to_send,
-                                                        session,
-                                                        bot_settings)
-                    for alarm in alarms_list:
-                        await bot.send_message(bot_settings.get('alarm_id'), alarm)
+                        # Выполнение задачи и формирование сообщения для отправки
+                        message, alarms_list = make_task_and_get_message(task_to_send,
+                                                            session,
+                                                            bot_settings)
+                        for alarm in alarms_list:
 
-                    # Отправка сообщения в основную группу
-                    if message:
-                        await bot.send_message(
-                            bot_settings.get('group_id'), message)
-                session.commit()
+                            await bot.send_message(bot_settings.get('alarm_id'), alarm)
+
+                        # Отправка сообщения в основную группу
+                        if message:
+                            await bot.send_message(
+                                bot_settings.get('group_id'), message)
+                    session.commit()
+        except Exception as err:
+            logger.error(err)
         await asyncio.sleep(refresh_delay)
 
 

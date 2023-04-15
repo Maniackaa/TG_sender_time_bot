@@ -63,28 +63,35 @@ with session:
     tasks = session.query(Task).all()
     if not tasks:
         test_task1: Task = Task(
-            title='Образец №1 сообщение',
-            target_time=str(datetime.time(hour=12, minute=0, second=0)),
+            title='Приветствие',
+            target_time=str(datetime.time(hour=10, minute=0, second=15)),
             last_send=datetime.datetime(2020, 1, 10),
             type='msg',
-            message='Test message',
-            is_active=0
+            message='Доброе утро',
+            is_active=1
         )
         test_task2: Task = Task(
             title='Образец №2 котировки',
-            target_time=str(datetime.time(hour=12, minute=0, second=0)),
+            target_time=str(datetime.time(hour=10, minute=1, second=0)),
             last_send=datetime.datetime(2020, 1, 10),
             type='smser',
             is_active=0
         )
         test_task3: Task = Task(
-            title='Образец последний',
-            target_time=str(datetime.time(hour=12, minute=0, second=0)),
+            title='завершающая отправка',
+            target_time=str(datetime.time(hour=18, minute=40, second=0)),
             last_send=datetime.datetime(2020, 1, 10),
-            type='last',
+            type='smser',
             is_active=0
         )
-        session.add_all([test_task1, test_task2, test_task3])
+        test_task4: Task = Task(
+            title='Образец последний',
+            target_time=str(datetime.time(hour=18, minute=40, second=30)),
+            last_send=datetime.datetime(2020, 1, 10),
+            type='last_msg',
+            is_active=0
+        )
+        session.add_all([test_task1, test_task2, test_task3, test_task4])
     session.commit()
 
 with session:
@@ -106,6 +113,17 @@ with session:
             name='alarm_id',
             value='-1001736797363',
             description='ID для отправки алармов',
+        )
+
+        settings4 = BotSettings(
+            name='test_refresh',
+            value='1',
+            description='Проверка обновления файла smser. 1-вкл, 2-откл',
+        )
+        settings5 = BotSettings(
+            name='send_test',
+            value='0',
+            description='Отправляет прочитанное сообщение в аларм-канал',
         )
 
         session.add_all([settings1, settings2, settings3])

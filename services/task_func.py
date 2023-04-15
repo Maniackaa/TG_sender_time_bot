@@ -61,7 +61,7 @@ def save_msg_to_db(message: str, task_id: int, session: Session):
     session.add(msg)
 
 
-def make_task_and_get_message(task_to_send: Task, session: Session, bot_settings: BotSettings) -> str:
+def make_task_and_get_message(task_to_send: Task, session: Session, bot_settings: dict) -> str:
     """Выполнение задачи. Изменение last_send"""
     alarm_list = []
     if task_to_send.type == 'smser':
