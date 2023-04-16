@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from database.db import engine, Task, Message, BotSettings
 from services.TG_read_smser_func import get_smser_dict
-from services.check_smser_func import test_refresh
+from services.check_smser_func import test_refresh, test_high_volatility
 
 logger = logging.getLogger(__name__)
 
@@ -63,35 +63,50 @@ def save_msg_to_db(message: str, task_id: int, session: Session):
 
 def make_task_and_get_message(task_to_send: Task, session: Session, bot_settings: dict) -> str:
     """Выполнение задачи. Изменение last_send"""
-    alarm_list = []
-    if task_to_send.type == 'smser':
-        logger.debug('ВЫполняется задача типа smser')
-        # Прочитаем файл
-        message_dict = get_smser_dict()
+    try:
+        alarm_list = []
+        if task_to_send.type == 'smser':
+            logger.debug('ВЫполняется задача типа smser')
+            # Прочитаем файл
+            message_dict = get_smser_dict()
 
-        # Формируем сообщение из файла
-        message = format_smser_message(message_dict)
-        # Проверим алармы
-        if bot_settings.get('test_refresh') == '1':
-            logger.debug('Проверка test_refresh')
-            old_sms = session.query(Message).all()
-            if old_sms:
-                if not test_refresh(json.loads(old_sms[-1].message), message_dict):
-                    alarm_list.append('Внимание. Файл не обновляется')
-                    logger.warning('Внимание. Файл не обновляется')
+            # Формируем сообщение из файла
+            message = format_smser_message(message_dict)
+            # Проверим алармы
+            if bot_settings.get('test_refresh') == '1':
+                logger.debug('Проверка test_refresh')
+                old_sms = session.query(Message).all()
+                if old_sms:
+                    if not test_refresh(json.loads(old_sms[-1].message), message_dict):
+                        alarm_list.append('Внимание. Файл не обновляется')
+                        logger.warning('Внимание. Файл не обновляется')
 
-        # Сохраним файл-смс в архив
-        save_msg_to_db(message_dict, task_to_send.id, session)
+            if bot_settings.get('test_high_volatility') == '1':
+                logger.debug('Проверка test_high_volatility')
+                old_sms = session.query(Message).all()
+                if old_sms:
+                    high_volatilyty_message = test_high_volatility(json.loads(old_sms[-1].message), message_dict)
+                    if high_volatilyty_message:
+                        alarm_list.append(high_volatilyty_message)
+                        logger.warning('Внимание. Высокая волатильность')
 
-    if task_to_send.type =='msg':
-        message = task_to_send.message
-    if task_to_send.type =='last_msg':
-        day_week = datetime.datetime.now().weekday()
-        message = 'Хорошего вечера' if day_week != 4 else 'Хороших выходных'
-    # Изменение времени отправки
-    task_to_send.last_send = datetime.datetime.now()
-    # Зафиксируем отправленное сообщение
-    logger.info(f'Подготовили сообщение {message}')
-    # save_msg_to_db(message)
-    return message, alarm_list
+
+
+            # Сохраним файл-смс в архив
+            save_msg_to_db(message_dict, task_to_send.id, session)
+
+        if task_to_send.type =='msg':
+            message = task_to_send.message
+        if task_to_send.type =='last_msg':
+            day_week = datetime.datetime.now().weekday()
+            message = 'Хорошего вечера' if day_week != 4 else 'Хороших выходных'
+        # Изменение времени отправки
+        task_to_send.last_send = datetime.datetime.now()
+        # Зафиксируем отправленное сообщение
+        logger.info(f'Подготовили сообщение {message}')
+        # save_msg_to_db(message)
+        return message, alarm_list
+    except Exception as err:
+        logger.error('Ошибка в функции make_task_and_get_message')
+        raise err
 

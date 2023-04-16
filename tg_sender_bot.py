@@ -15,7 +15,7 @@ from services.task_func import get_task_to_send, make_task_and_get_message, \
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format=u'%(filename)s:%(lineno)d #%(levelname)-8s '
            u'[%(asctime)s] - %(name)s - %(message)s')
 
@@ -66,7 +66,7 @@ async def timer(bot: Bot):
                                 bot_settings.get('group_id'), message)
                     session.commit()
         except Exception as err:
-            logger.error(err)
+            logger.error(str(err), exc_info=True)
             await bot.send_message(bot_settings.get('alarm_id'), str(err))
             refresh_delay = 10
         await asyncio.sleep(refresh_delay)
