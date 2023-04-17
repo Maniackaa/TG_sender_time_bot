@@ -16,7 +16,6 @@ router: Router = Router()
 @router.message(Command(commands=["start"]))
 async def process_start_command(message: CallbackQuery | Message, state: FSMContext):
     await state.clear()
-
     text = 'xxxxxxxxxx'
     await message.answer(text,
                          parse_mode='html',
