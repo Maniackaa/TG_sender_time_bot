@@ -40,6 +40,7 @@ async def process_start_command(message: Message, bot):
     await set_main_menu(bot)
     title_group = message.chat.title
     group_id = message.chat.id
+    print(group_id)
     await message.answer(f'Привет. {title_group} {group_id}',
                          parse_mode='html',
                          )
