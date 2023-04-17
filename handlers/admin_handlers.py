@@ -1,8 +1,10 @@
 from aiogram import Router, Bot
 from aiogram.filters import Command, StateFilter, Text, BaseFilter
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, BotCommand
 
 from config_data.config import config
+from database.read_db import run_bot, stop_bot
+from lexicon.lexicon import LEXICON_COMMANDS_RU
 
 
 class IsAdmin(BaseFilter):
@@ -19,13 +21,42 @@ router = Router()
 router.message.filter(IsAdmin())
 
 
+
+
+async def set_main_menu(bot: Bot):
+    main_menu_commands = []
+    await bot.set_my_commands(main_menu_commands)
+
+
+# async def set_main_menu(bot: Bot):
+#     main_menu_commands = [
+#         BotCommand(command=command, description=description)
+#         for command, description in LEXICON_COMMANDS_RU.items()]
+#     await bot.set_my_commands(main_menu_commands)
+
+
 @router.message(Command(commands=["start"]))
-async def process_start_command(message: Message):
-    text = 'start'
-    await message.answer(text,
+async def process_start_command(message: Message, bot):
+    await set_main_menu(bot)
+    await message.answer('Привет',
                          parse_mode='html',
                          )
 
+
+@router.message(Command(commands=["run_bot"]))
+async def process_start_command(message: Message):
+    run_bot()
+    await message.answer('Бот запущен',
+                         parse_mode='html',
+                         )
+
+
+@router.message(Command(commands=["stop_bot"]))
+async def process_start_command(message: Message):
+    stop_bot()
+    await message.answer('Бот остановлен',
+                         parse_mode='html',
+                         )
 
 # Последний эхо-фильтр
 @router.message()
