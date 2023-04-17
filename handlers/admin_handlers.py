@@ -38,7 +38,9 @@ async def set_main_menu(bot: Bot):
 @router.message(Command(commands=["start"]))
 async def process_start_command(message: Message, bot):
     await set_main_menu(bot)
-    await message.answer('Привет',
+    title_group = message.chat.title
+    group_id = message.chat.id
+    await message.answer(f'Привет. {title_group} {group_id}',
                          parse_mode='html',
                          )
 
@@ -58,9 +60,10 @@ async def process_start_command(message: Message):
                          parse_mode='html',
                          )
 
-# Последний эхо-фильтр
-@router.message()
-async def send_echo(message: Message):
-    print(message)
-    await message.reply(text=message.text)
+# # Последний эхо-фильтр
+# @router.message()
+# async def send_echo(message: Message):
+#     print(message)
+#     await message.reply(text=message.text)
+
 

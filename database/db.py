@@ -111,17 +111,17 @@ with session:
     if not settings:
         settings1 = BotSettings(
             name='is_work',
-            value='1',
+            value='0',
             description='1 - бот работает, 0 - бот не работает',
         )
         settings2 = BotSettings(
             name='group_id',
-            value='-1001736797363',
+            value='5627135088',
             description='ID группы для отправки сообщений',
         )
         settings3 = BotSettings(
             name='alarm_id',
-            value='-1001736797363',
+            value='5627135088',
             description='ID для отправки алармов',
         )
         settings4 = BotSettings(

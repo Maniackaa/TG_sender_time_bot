@@ -12,12 +12,12 @@ git clone https://github.com/Maniackaa/TG_sender_time_bot.git
 cd TG_sender_time_bot
 ```
 
-Cоздать и активировать виртуальное окружение:
+Cоздать виртуальное окружение:
 
 ```
 python -m venv venv
 ```
-
+Активировать виртуальное окружение
 ```
 .\venv\Scripts\activate
 ```
