@@ -13,14 +13,14 @@ logger = logging.getLogger(__name__)
 
 
 def get_task_to_send(session) -> list[Task]:
-    # Достанем задачи, дата последней отправки раньше чем сегодня
+    """Достанем задачи, дата последней отправки раньше чем сегодня"""
     tasks_to_send = []
     # session = Session(bind=engine)
     now_date = datetime.datetime.now().date()
     # Если сегодня суббота или вс, то не работаем
-    # if now_date.weekday() in (5, 6):
-    #     logger.debug('Выходной')
-    #     return tasks_to_send
+    if now_date.weekday() in (5, 6):
+        logger.debug('Выходной')
+        return tasks_to_send
     all_tasks = session.query(Task).filter(
         func.DATE(Task.last_send) < now_date, Task.is_active == 1).all()
     logger.debug(f'Все не отправленные задачи: {all_tasks}')
@@ -30,11 +30,14 @@ def get_task_to_send(session) -> list[Task]:
         # Проверим не пора ли отправлять их.
         now_time = datetime.datetime.now().time()
         for task in all_tasks:
-            task_time = datetime.datetime.strptime(task.target_time, '%H:%M:%S').time()
-            logger.debug(f'Сверка задачи {task}: {now_time} {now_time > task_time} {task_time} last_send: {task.last_send}')
+            task_time = datetime.datetime.strptime(
+                            task.target_time, '%H:%M:%S'
+                        ).time()
+            logger.debug(f'Сверка задачи {task}: {now_time} '
+                         f'{now_time > task_time} {task_time}'
+                         f' last_send: {task.last_send}')
             if now_time > task_time:
                 tasks_to_send.append(task)
-
     return tasks_to_send
 
 
@@ -61,7 +64,9 @@ def save_msg_to_db(message: str, task_id: int, session: Session):
     session.add(msg)
 
 
-def make_task_and_get_message(task_to_send: Task, session: Session, bot_settings: dict) -> tuple[str, list]:
+def make_task_and_get_message(task_to_send: Task,
+                              session: Session,
+                              bot_settings: dict) -> tuple[str, list]:
     """Выполнение задачи. Изменение last_send"""
     try:
         alarm_list = []
@@ -77,9 +82,10 @@ def make_task_and_get_message(task_to_send: Task, session: Session, bot_settings
                 logger.debug('Проверка test_refresh')
                 old_sms = session.query(Message).all()
                 if old_sms:
-                    if not test_refresh(json.loads(old_sms[-1].message), message_dict):
-                        alarm_list.append('Внимание. Файл не обновляется')
-                        logger.warning('Внимание. Файл не обновляется')
+                    if not test_refresh(
+                            json.loads(old_sms[-1].message), message_dict):
+                        alarm_list.append('Внимание. Данные не актуальны')
+                        logger.warning('Внимание. Данные не актуальны')
 
             if bot_settings.get('test_high_volatility') == '1':
                 logger.debug('Проверка test_high_volatility')
@@ -92,24 +98,26 @@ def make_task_and_get_message(task_to_send: Task, session: Session, bot_settings
                         )
                     if high_volatility_message:
                         alarm_list.append(high_volatility_message)
-                        logger.warning('Внимание. Высокая волатильность')
-
-
+                        logger.info('Внимание. Высокая волатильность')
 
             # Сохраним файл-смс в архив
             save_msg_to_db(message_dict, task_to_send.id, session)
 
-        if task_to_send.type =='msg':
+        if task_to_send.type == 'msg':
             message = task_to_send.message
-        if task_to_send.type =='last_msg':
+
+        if task_to_send.type == 'last_msg':
             day_week = datetime.datetime.now().weekday()
-            message = 'Хорошего вечера' if day_week != 4 else 'Хороших выходных'
+            message = 'Хорошего вечера'\
+                      if day_week != 4 \
+                      else 'Хороших выходных'
+
         # Изменение времени отправки
         task_to_send.last_send = datetime.datetime.now()
         # Зафиксируем отправленное сообщение
         logger.info(f'Подготовили сообщение {message}')
-        # save_msg_to_db(message)
         return message, alarm_list
+
     except Exception as err:
         logger.error('Ошибка в функции make_task_and_get_message')
         raise err
