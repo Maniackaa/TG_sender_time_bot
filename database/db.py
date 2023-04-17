@@ -100,31 +100,42 @@ with session:
         settings1 = BotSettings(
             name='is_work',
             value='1',
-            description='1-бот работает, 0-бот не работает',
+            description='1 - бот работает, 0 - бот не работает',
         )
-
         settings2 = BotSettings(
             name='group_id',
             value='-1001736797363',
             description='ID группы для отправки сообщений',
         )
-
         settings3 = BotSettings(
             name='alarm_id',
             value='-1001736797363',
             description='ID для отправки алармов',
         )
-
         settings4 = BotSettings(
             name='test_refresh',
             value='1',
-            description='Проверка обновления файла smser. 1-вкл, 2-откл',
+            description='Проверка на обновление файла smser. 1-вкл, 0-откл',
         )
         settings5 = BotSettings(
+            name='test_high_volatility',
+            value='1',
+            description='Проверка на волатильность. 1-вкл, 0-откл',
+        )
+        settings6 = BotSettings(
+            name='volatility_target',
+            value='5.0',
+            description='Порог волатильности в %',
+        )
+        settings7 = BotSettings(
+            name='send_message_to_group',
+            value='1',
+            description='1 - отправка в группу включена, 0 - бот работает, но сообщения в группу не отправляются',
+        )
+        settings8 = BotSettings(
             name='send_test',
             value='0',
-            description='Отправляет прочитанное сообщение в аларм-канал',
+            description='1 - Постоянно отправляет прочитанное сообщение scmser в аларм-канал',
         )
-
-        session.add_all([settings1, settings2, settings3])
+        session.add_all([settings1, settings2, settings3, settings4, settings5, settings6, settings7, settings8])
     session.commit()

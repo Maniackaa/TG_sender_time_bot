@@ -37,12 +37,13 @@ async def timer(bot: Bot):
         try:
             bot_settings = read_sender_settings()
             alarms_list = []
-            if bot_settings.get('is_work') != '0':
+            if bot_settings.get('is_work') == '1':
                 refresh_delay = 1
                 session = Session(bind=engine)
                 bot_settings = read_sender_settings()
 
                 if bot_settings.get('send_test') == '1':
+                    refresh_delay = 10
                     test_msg = format_smser_message(get_smser_dict())
                     await bot.send_message(bot_settings.get('alarm_id'), test_msg)
 
@@ -57,13 +58,15 @@ async def timer(bot: Bot):
                         message, alarms_list = make_task_and_get_message(task_to_send,
                                                             session,
                                                             bot_settings)
+                        # Отправка алармов
                         for alarm in alarms_list:
                             await bot.send_message(bot_settings.get('alarm_id'), alarm)
 
                         # Отправка сообщения в основную группу
-                        if message:
+                        if message and bot_settings.get('send_message_to_group') == '1':
                             await bot.send_message(
-                                bot_settings.get('group_id'), message)
+                                bot_settings.get('group_id'),
+                                message)
                     session.commit()
         except Exception as err:
             logger.error(str(err), exc_info=True)
@@ -90,4 +93,4 @@ if __name__ == '__main__':
     try:
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
-        logger.error('Bot stopped!')
+        logger.info('Bot stopped!')

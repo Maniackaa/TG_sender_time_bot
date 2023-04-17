@@ -61,7 +61,7 @@ def save_msg_to_db(message: str, task_id: int, session: Session):
     session.add(msg)
 
 
-def make_task_and_get_message(task_to_send: Task, session: Session, bot_settings: dict) -> str:
+def make_task_and_get_message(task_to_send: Task, session: Session, bot_settings: dict) -> tuple[str, list]:
     """Выполнение задачи. Изменение last_send"""
     try:
         alarm_list = []
@@ -85,9 +85,13 @@ def make_task_and_get_message(task_to_send: Task, session: Session, bot_settings
                 logger.debug('Проверка test_high_volatility')
                 old_sms = session.query(Message).all()
                 if old_sms:
-                    high_volatilyty_message = test_high_volatility(json.loads(old_sms[-1].message), message_dict)
-                    if high_volatilyty_message:
-                        alarm_list.append(high_volatilyty_message)
+                    high_volatility_message = test_high_volatility(
+                        json.loads(old_sms[-1].message),
+                        message_dict,
+                        target=bot_settings.get('volatility_target'),
+                        )
+                    if high_volatility_message:
+                        alarm_list.append(high_volatility_message)
                         logger.warning('Внимание. Высокая волатильность')
 
 

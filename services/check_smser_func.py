@@ -34,8 +34,8 @@ def format_high_volatility_message(currency_list):
 def test_high_volatility(
         sms_old: dict,
         sms_new: dict,
-        target: int = 5,
-        compare_list: list[str] = []) -> str:
+        target: str = '5',
+        compare_list: list[str] = ['EURRUB', 'RUR', 'GAZP', 'SBER']) -> str:
     """Тест на изменение валют.
     'GAZ': [490.0], 'OIL': [0.2], 'US': [0.8], 'EU': [0.6, 0.5],
     -> [('GAZ', 500.0, 600.0, 100.0, -20.0),
@@ -43,6 +43,7 @@ def test_high_volatility(
         "форматированное сообщение из format_high_volatility_message"
     """
     try:
+        target = float(target)
         result = []
         for key, new_val_list in sms_new.items():
             if key in compare_list:
