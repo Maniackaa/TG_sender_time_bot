@@ -6,7 +6,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from database.db import engine, Task, Message, BotSettings
-from services.TG_read_smser_func import get_smser_dict
+from services.TG_read_smser_func import get_smser_dict, read_file
 from services.check_smser_func import test_refresh, test_high_volatility
 
 logger = logging.getLogger(__name__)
@@ -74,10 +74,13 @@ def make_task_and_get_message(task_to_send: Task,
         if task_to_send.type == 'smser':
             logger.debug('ВЫполняется задача типа smser')
             # Прочитаем файл
+            raw_message = read_file()
             message_dict = get_smser_dict()
 
             # Формируем сообщение из файла
-            message = format_smser_message(message_dict)
+
+            # message = format_smser_message(message_dict)
+            message = raw_message
             # Проверим алармы
             if bot_settings.get('test_refresh') == '1':
                 logger.debug('Проверка test_refresh')
@@ -109,9 +112,9 @@ def make_task_and_get_message(task_to_send: Task,
 
         if task_to_send.type == 'last_msg':
             day_week = datetime.datetime.now().weekday()
-            message = 'Хорошего вечера'\
+            message = 'Хорошего вечера!'\
                       if day_week != 4 \
-                      else 'Хороших выходных'
+                      else 'Хороших выходных!'
 
         # Изменение времени отправки
         task_to_send.last_send = datetime.datetime.now()

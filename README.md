@@ -52,7 +52,13 @@ OPENAI_API_KEY=''
 ```
 python tg_sender_bot.py
 ```
+Остановка бота закрытием терминала или через настройки.
 
+Последующие запуски:
+```
+.\venv\Scripts\activate
+python tg_sender_bot.py
+```
 ## Работа с ботом.
 Все взаимодействие осуществляется через базу данных - файл __time_sender_bot.sqlite3__
 

@@ -77,7 +77,10 @@ async def timer(bot: Bot):
 
         except Exception as err:
             logger.error(str(err), exc_info=True)
-            await bot.send_message(bot_settings.get('alarm_id'), str(err))
+            try:
+                await bot.send_message(bot_settings.get('alarm_id'), str(err))
+            except Exception as err:
+                logger.error(err)
             refresh_delay = 10
         await asyncio.sleep(refresh_delay)
 

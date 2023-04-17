@@ -21,8 +21,6 @@ router = Router()
 router.message.filter(IsAdmin())
 
 
-
-
 async def set_main_menu(bot: Bot):
     main_menu_commands = []
     await bot.set_my_commands(main_menu_commands)
