@@ -65,33 +65,45 @@ with session:
         test_task1: Task = Task(
             title='Приветствие',
             target_time=str(datetime.time(hour=10, minute=0, second=15)),
-            last_send=datetime.datetime(2020, 1, 10),
+            last_send=datetime.datetime(2023, 4, 16),
             type='msg',
             message='Доброе утро',
             is_active=1
         )
         test_task2: Task = Task(
-            title='Образец №2 котировки',
+            title='Котировки №1',
             target_time=str(datetime.time(hour=10, minute=1, second=0)),
-            last_send=datetime.datetime(2020, 1, 10),
+            last_send=datetime.datetime(2023, 4, 16),
             type='smser',
-            is_active=0
+            is_active=1
         )
-        test_task3: Task = Task(
-            title='завершающая отправка',
+        session.add_all([test_task1, test_task2])
+        for x in range(2, 10):
+            task = Task(
+                title=f'Котировки №{x}',
+                target_time=str(datetime.time(hour=10 + x, minute=0, second=0)),
+                last_send=datetime.datetime(2023, 4, 16),
+                type='smser',
+                is_active=1
+            )
+            session.add(task)
+        test_task3 = Task(
+            title=f'Завершающая отправка',
             target_time=str(datetime.time(hour=18, minute=40, second=0)),
-            last_send=datetime.datetime(2020, 1, 10),
+            last_send=datetime.datetime(2023, 4, 16),
             type='smser',
-            is_active=0
+            is_active=1
         )
+        session.add(test_task3)
         test_task4: Task = Task(
             title='Образец последний',
             target_time=str(datetime.time(hour=18, minute=40, second=30)),
-            last_send=datetime.datetime(2020, 1, 10),
+            last_send=datetime.datetime(2023, 4, 16),
             type='last_msg',
-            is_active=0
+            is_active=1
         )
-        session.add_all([test_task1, test_task2, test_task3, test_task4])
+        session.add_all([test_task4])
+
     session.commit()
 
 with session:
@@ -125,7 +137,7 @@ with session:
         settings6 = BotSettings(
             name='volatility_target',
             value='5.0',
-            description='Порог волатильности в %',
+            description='Порог волатильности в % в формате 2.5',
         )
         settings7 = BotSettings(
             name='send_message_to_group',
@@ -135,7 +147,7 @@ with session:
         settings8 = BotSettings(
             name='send_test',
             value='0',
-            description='1 - Постоянно отправляет прочитанное сообщение scmser в аларм-канал',
+            description='1 - Каждые 10 секунд отправляет прочитанное сообщение smser в аларм-канал',
         )
         session.add_all([settings1, settings2, settings3, settings4, settings5, settings6, settings7, settings8])
     session.commit()
