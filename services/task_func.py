@@ -61,6 +61,7 @@ def save_msg_to_db(message: str, task_id: int, session: Session):
     msg = Message()
     msg.task_id = task_id
     msg.message = json.dumps(message)
+    msg.send_time = datetime.datetime.now()
     session.add(msg)
 
 

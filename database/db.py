@@ -22,10 +22,10 @@ class Task(Base):
                                     comment='Первичный ключ')
     title: Mapped[str] = mapped_column(nullable=True)
     target_time: Mapped[str] = mapped_column()
-    last_send: Mapped[str] = mapped_column(server_default='1999-01-01')
-    type: Mapped[str] = mapped_column(server_default='smser')
+    last_send: Mapped[str] = mapped_column(default='1999-01-01')
+    type: Mapped[str] = mapped_column(default='smser')
     message: Mapped[str] = mapped_column(nullable=True)
-    is_active: Mapped[int] = mapped_column(server_default='1')
+    is_active: Mapped[int] = mapped_column(default='1')
     send_messages: Mapped[list['Message']] = relationship(back_populates='task')
 
     def __repr__(self):
@@ -50,7 +50,7 @@ class Message(Base):
     task_id: Mapped[int] = mapped_column(ForeignKey('task.id'))
     message: Mapped[str] = mapped_column()
     task: Mapped['Task'] = relationship(back_populates='send_messages')
-    send_time: Mapped[str] = mapped_column(server_default=str(datetime.datetime.now()))
+    send_time: Mapped[str] = mapped_column(default=str(datetime.datetime.now()))
 
 
 Base.metadata.create_all(engine)
