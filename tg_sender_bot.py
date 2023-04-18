@@ -8,7 +8,7 @@ from config_data.config import load_config
 from aiogram import Bot, Dispatcher
 
 from database.db import engine, BotSettings
-from handlers import admin_handlers
+from handlers import admin_handlers, user_handlers
 from services.TG_read_smser_func import get_smser_dict
 from services.task_func import (
     get_task_to_send,
@@ -93,10 +93,11 @@ async def main():
 
     asyncio.create_task(timer(bot))
     dp.include_router(admin_handlers.router)
+    dp.include_router(user_handlers.router)
     # dp.include_router(echo.router)
 
     await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
+    await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
 
 if __name__ == '__main__':
 
