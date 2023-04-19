@@ -11,33 +11,6 @@ from services.TG_read_smser_func import get_smser_dict, read_file
 from services.check_smser_func import test_refresh, test_high_volatility
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=logging.INFO,
-    format=u'%(filename)s:%(lineno)d #%(levelname)-8s '
-           u'[%(asctime)s] - %(name)s - %(message)s')
-
-
-# def get_plane_task(session) -> list[Task]:
-#     """Достанем задачи, дата последней отправки раньше чем сегодня"""
-#     tasks_to_send = []
-#     now_date = datetime.datetime.now().date()
-#     plane_tasks = session.query(Task).filter(
-#         Task.type == 'plane_message',
-#         Task.is_active == 1,
-#         func.DATE(Task.target_time) == now_date
-#     ).all()
-#     logger.debug(f'Все плановые : {plane_tasks}')
-#     now_time = datetime.datetime.now().time()
-#     for task in plane_tasks:
-#         task_time = datetime.datetime.fromisoformat(task.target_time).time()
-#         logger.debug(f'Сверка задачи {task}: {now_time} '
-#                      f'{now_time > task_time} {task_time}'
-#                      f' last_send: {task.last_send}')
-#         if now_time > task_time:
-#             tasks_to_send.append(task)
-#     return tasks_to_send
-#
-# get_plane_task(session=session)
 
 
 def get_task_to_send(session) -> list[Task]:
@@ -117,6 +90,7 @@ def make_task_and_get_message(task_to_send: Task,
 
             # message = format_smser_message(message_dict)
             message = raw_message
+            logger.debug(f'message = raw_message {message}')
             # Проверим алармы
             if bot_settings.get('test_refresh') == '1':
                 logger.debug('Проверка test_refresh')
@@ -143,7 +117,7 @@ def make_task_and_get_message(task_to_send: Task,
             # Сохраним файл-смс в архив
             save_msg_to_db(message_dict, task_to_send.id, session)
 
-        if task_to_send.type == 'msg' or 'plane_msg':
+        if task_to_send.type == 'msg' or task_to_send.type == 'plane_msg':
             message = task_to_send.message
 
         if task_to_send.type == 'last_msg':

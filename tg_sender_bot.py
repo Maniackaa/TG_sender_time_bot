@@ -35,7 +35,7 @@ def read_sender_settings():
 
 
 async def timer(bot: Bot):
-    refresh_delay = 10
+    refresh_delay = 1
     while True:
         try:
             bot_settings = read_sender_settings()
@@ -70,13 +70,15 @@ async def timer(bot: Bot):
                             bot_settings.get('alarm_id'), alarm)
 
                     # Отправка сообщения в основную группу
+                    logger.debug(f'Отправка сообщения в основную группу {message}')
                     if message and bot_settings.get(
                                         'send_message_to_group') == '1':
+                        logger.debug(
+                            f'message and bot_settings - True')
                         await bot.send_message(
                                         bot_settings.get('group_id'),
                                         message)
                 session.commit()
-
 
         except Exception as err:
             logger.error(str(err), exc_info=True)
