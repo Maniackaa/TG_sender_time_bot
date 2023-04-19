@@ -1,8 +1,9 @@
 import datetime
 import json
 import logging
+from operator import and_
 
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from database.db import engine, Task, Message, BotSettings
@@ -10,6 +11,33 @@ from services.TG_read_smser_func import get_smser_dict, read_file
 from services.check_smser_func import test_refresh, test_high_volatility
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format=u'%(filename)s:%(lineno)d #%(levelname)-8s '
+           u'[%(asctime)s] - %(name)s - %(message)s')
+
+
+# def get_plane_task(session) -> list[Task]:
+#     """Достанем задачи, дата последней отправки раньше чем сегодня"""
+#     tasks_to_send = []
+#     now_date = datetime.datetime.now().date()
+#     plane_tasks = session.query(Task).filter(
+#         Task.type == 'plane_message',
+#         Task.is_active == 1,
+#         func.DATE(Task.target_time) == now_date
+#     ).all()
+#     logger.debug(f'Все плановые : {plane_tasks}')
+#     now_time = datetime.datetime.now().time()
+#     for task in plane_tasks:
+#         task_time = datetime.datetime.fromisoformat(task.target_time).time()
+#         logger.debug(f'Сверка задачи {task}: {now_time} '
+#                      f'{now_time > task_time} {task_time}'
+#                      f' last_send: {task.last_send}')
+#         if now_time > task_time:
+#             tasks_to_send.append(task)
+#     return tasks_to_send
+#
+# get_plane_task(session=session)
 
 
 def get_task_to_send(session) -> list[Task]:
@@ -17,15 +45,23 @@ def get_task_to_send(session) -> list[Task]:
     tasks_to_send = []
     # session = Session(bind=engine)
     now_date = datetime.datetime.now().date()
-    # Если сегодня суббота или вс, то не работаем
+
+
+    today_tasks = session.query(Task).filter(
+        and_(Task.is_active == 1, or_(Task.target_date == now_date, Task.target_date == None)))
+    # Если сегодня суббота или вс, то только плановые
     if now_date.weekday() in (5, 6):
         logger.debug('Выходной')
-        return tasks_to_send
-    all_tasks = session.query(Task).filter(
-        func.DATE(Task.last_send) < now_date, Task.is_active == 1).all()
-    logger.debug(f'Все не отправленные задачи: {all_tasks}')
-    # session.commit()
+        today_tasks = today_tasks.filter(Task.type == 'plane_message')
 
+    all_tasks = today_tasks.filter(
+        or_(
+            func.DATE(Task.last_send) < now_date,
+            Task.last_send == '',
+            Task.last_send is None,
+        )
+    ).all()
+    logger.debug(f'Все не отправленные задачи: {all_tasks}')
     if all_tasks:
         # Проверим не пора ли отправлять их.
         now_time = datetime.datetime.now().time()
@@ -107,7 +143,7 @@ def make_task_and_get_message(task_to_send: Task,
             # Сохраним файл-смс в архив
             save_msg_to_db(message_dict, task_to_send.id, session)
 
-        if task_to_send.type == 'msg':
+        if task_to_send.type == 'msg' or 'plane_msg':
             message = task_to_send.message
 
         if task_to_send.type == 'last_msg':

@@ -53,6 +53,8 @@ async def timer(bot: Bot):
 
                 # Список задач на выполнение если они есть:
                 tasks_to_send = get_task_to_send(session)
+                # Достанем плановые задачи по дате:
+                # plane_task = get_plane_task(session)
                 for task_to_send in tasks_to_send:
                     # Проверка на изменение данных:
                     # check_alarm()
@@ -74,6 +76,7 @@ async def timer(bot: Bot):
                                         bot_settings.get('group_id'),
                                         message)
                 session.commit()
+
 
         except Exception as err:
             logger.error(str(err), exc_info=True)
