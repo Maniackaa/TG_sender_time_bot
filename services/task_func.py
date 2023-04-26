@@ -51,7 +51,7 @@ def get_task_to_send(session) -> list[Task]:
                         ).time()
             now_time_timdelta = datetime.timedelta(hours=now_time.hour,
                                                    minutes=now_time.minute,
-                                                   seconds=now_time.minute)
+                                                   seconds=now_time.second)
             task_timedelta = datetime.timedelta(hours=task_time.hour,
                                                 minutes=task_time.minute,
                                                 seconds=task_time.second)
