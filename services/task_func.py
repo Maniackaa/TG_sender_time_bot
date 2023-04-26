@@ -14,14 +14,21 @@ logger = logging.getLogger(__name__)
 
 
 def get_task_to_send(session) -> list[Task]:
-    """Достанем задачи, дата последней отправки раньше чем сегодня"""
+    """Достанем задачи, дата последней отправки раньше чем сегодня
+    Ограничим давностью не более 15 минут.
+    """
     tasks_to_send = []
     # session = Session(bind=engine)
     now_date = datetime.datetime.now().date()
-
-
+    logger.debug(f'now_date {now_date}')
+    # Отберем активные и
+    # которые без конкретной target_date
+    # или target_date сегодняшняя
     today_tasks = session.query(Task).filter(
-        and_(Task.is_active == 1, or_(Task.target_date == now_date, Task.target_date == None)))
+        and_(Task.is_active == 1,
+             or_(Task.target_date == now_date, Task.target_date == None)
+             ),
+        )
     # Если сегодня суббота или вс, то только плановые
     if now_date.weekday() in (5, 6):
         logger.debug('Выходной')
@@ -29,8 +36,8 @@ def get_task_to_send(session) -> list[Task]:
 
     all_tasks = today_tasks.filter(
         or_(
-            func.DATE(Task.last_send) < now_date,
-            Task.last_send == '',
+            func.DATE(Task.last_send) < now_date, #  Дата последней отправки раньше сегодня
+            Task.last_send == '', #  или пустые
             Task.last_send is None,
         )
     ).all()
@@ -42,10 +49,18 @@ def get_task_to_send(session) -> list[Task]:
             task_time = datetime.datetime.strptime(
                             task.target_time, '%H:%M:%S'
                         ).time()
+            now_time_timdelta = datetime.timedelta(hours=now_time.hour,
+                                                   minutes=now_time.minute,
+                                                   seconds=now_time.minute)
+            task_timedelta = datetime.timedelta(hours=task_time.hour,
+                                                minutes=task_time.minute,
+                                                seconds=task_time.second)
             logger.debug(f'Сверка задачи {task}: {now_time} '
                          f'{now_time > task_time} {task_time}'
                          f' last_send: {task.last_send}')
-            if now_time > task_time:
+            # Если время наступило и прошло не более 15 мин
+            if ((now_time > task_time) and
+                (now_time_timdelta - task_timedelta).seconds < 15 * 60):
                 tasks_to_send.append(task)
     return tasks_to_send
 

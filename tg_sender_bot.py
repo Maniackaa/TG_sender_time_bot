@@ -18,7 +18,7 @@ from services.task_func import (
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format=u'%(filename)s:%(lineno)d #%(levelname)-8s '
            u'[%(asctime)s] - %(name)s - %(message)s')
 
@@ -37,8 +37,8 @@ def read_sender_settings():
 async def timer(bot: Bot):
     refresh_delay = 1
     while True:
+        bot_settings = read_sender_settings()
         try:
-            bot_settings = read_sender_settings()
             alarms_list = []
             if bot_settings.get('is_work') == '1':
                 refresh_delay = 1
@@ -53,8 +53,6 @@ async def timer(bot: Bot):
 
                 # Список задач на выполнение если они есть:
                 tasks_to_send = get_task_to_send(session)
-                # Достанем плановые задачи по дате:
-                # plane_task = get_plane_task(session)
                 for task_to_send in tasks_to_send:
                     # Проверка на изменение данных:
                     # check_alarm()
