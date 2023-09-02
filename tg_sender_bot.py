@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 
 import logging
 
@@ -99,8 +100,17 @@ async def main():
     dp.include_router(user_handlers.router)
     # dp.include_router(echo.router)
 
+    try:
+        admins = config.tg_bot.admin_ids
+        if admins:
+            await bot.send_message(
+                config.tg_bot.admin_ids[0], f'Бот запущен.')
+    except:
+        logger.warning(f'Не могу отравить сообщение {config.tg_bot.admin_ids[0]}')
+
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
+
 
 if __name__ == '__main__':
 

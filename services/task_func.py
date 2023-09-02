@@ -6,11 +6,12 @@ from operator import and_
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
+from config_data.config import get_my_loggers
 from database.db import engine, Task, Message, BotSettings
 from services.TG_read_smser_func import get_smser_dict, read_file
 from services.check_smser_func import test_refresh, test_high_volatility
 
-logger = logging.getLogger(__name__)
+logger, err_log = get_my_loggers()
 
 
 def get_task_to_send(session) -> list[Task]:
@@ -29,10 +30,11 @@ def get_task_to_send(session) -> list[Task]:
              or_(Task.target_date == now_date, Task.target_date == None)
              ),
         )
+
     # Если сегодня суббота или вс, то только плановые
-    if now_date.weekday() in (5, 6):
-        logger.debug('Выходной')
-        today_tasks = today_tasks.filter(Task.type == 'plane_message')
+    # if now_date.weekday() in (5, 6):
+    #     logger.debug('Выходной')
+    #     today_tasks = today_tasks.filter(Task.type == 'plane_msg')
 
     all_tasks = today_tasks.filter(
         or_(
@@ -41,6 +43,7 @@ def get_task_to_send(session) -> list[Task]:
             Task.last_send is None,
         )
     ).all()
+    print(all_tasks)
     logger.debug(f'Все не отправленные задачи: {all_tasks}')
     if all_tasks:
         # Проверим не пора ли отправлять их.

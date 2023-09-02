@@ -5,11 +5,14 @@ logger = logging.getLogger(__name__)
 
 def test_refresh(sms_old: dict,
                  sms_new: dict,
-                 compare_list: list[str]= ['EURRUB', 'RUR', 'GAZP', 'SBER'])-> bool:
+                 compare_list: list[str] = ['GAZP', 'SBER', 'ROSN', 'LKOH'])-> bool:
     """Если все значения из списка compare_list равны - возвращает False"""
-    result = all([sms_old[key] == sms_new[key] for key in compare_list])
-    logger.debug(f'Сравнение {compare_list}. Тест пройден: {not result}')
-    return not result
+    try:
+        result = all([sms_old[key]['value'] == sms_new[key]['value'] for key in compare_list])
+        logger.debug(f'Сравнение {compare_list}. Тест пройден: {not result}')
+        return not result
+    except Exception as err:
+        logger.error('Ошибка при проверке на обновлении', exc_info=True)
 
 def format_high_volatility_message(currency_list):
     """ Форматируем сообщение для аларма волотильности
@@ -32,26 +35,26 @@ def format_high_volatility_message(currency_list):
 
 
 def test_high_volatility(
-        sms_old: dict,
+        sms_old: dict, # {'GAZ': {'value': 414.0, 'delta': None}, 'BRENT': {'value': 77.77, 'delta': 1.4}}
         sms_new: dict,
         target: str = '5',
-        compare_list: list[str] = ['EURRUB', 'RUR', 'GAZP', 'SBER']) -> str:
+        compare_list: list[str] = None) -> str:
     """Тест на изменение валют.
     'GAZ': [490.0], 'OIL': [0.2], 'US': [0.8], 'EU': [0.6, 0.5],
     -> [('GAZ', 500.0, 600.0, 100.0, -20.0),
         ('BRENT', 78.31, 50.3, -28.01, 35.768)] ->
         "форматированное сообщение из format_high_volatility_message"
     """
+    if not compare_list:
+        compare_list = sms_old.keys()
     try:
         target = float(target)
         result = []
         for key, new_val_list in sms_new.items():
             if key in compare_list:
-                old_val_list = sms_old.get(key)
-                new_val_list = new_val_list
-                if old_val_list and len(old_val_list) == 1 == len(new_val_list):
-                    old_val = old_val_list[0]
-                    new_val = new_val_list[0]
+                old_val = sms_old.get(key).get('value')
+                new_val = new_val_list.get('value')
+                if old_val and new_val:
                     delta_x = round(new_val - old_val, 4)
                     delta_perc = round(delta_x/old_val * 100, 2)
                     logger.info(f'{old_val}, {new_val} Разница {delta_x}, {delta_perc} %')
@@ -62,10 +65,10 @@ def test_high_volatility(
             return format_high_volatility_message(result)
     except Exception as err:
         raise err
-# # #
-# old = {'GAZ': [13000.119], 'BRENT': [78.315], 'OIL': [0.2], 'US': [0.8], 'EU': [0.6, 0.5], 'EUR': [1.083], 'EURRUB': [83.33], 'RUR': [76.93], 'GAZP': [170.3], 'SBER': [213.7], 'AFLT': [32.3], 'GMKN': [14.335], 'ROSN': [379.1], 'NLMK': [128.4], 'CHMF': [1057.4], 'NVTK': [1155.8], 'SNGS': [23.54], 'SNGSP': [31.3], 'VTB': [0.0183], 'MTSS': [257.2], 'RNFT': [104.8]}
-# new = {'GAZ': [10000.119], 'BRENT': [50.3], 'OIL': [0.2], 'US': [0.8], 'EU': [0.6, 0.5], 'EUR': [1.081], 'EURRUB': [83.33], 'RUR': [76.93], 'GAZP': [170.3], 'SBER': [213.7], 'AFLT': [32.3], 'GMKN': [14.335], 'ROSN': [379.1], 'NLMK': [128.4], 'CHMF': [1057.4], 'NVTK': [1155.8], 'SNGS': [23.54], 'SNGSP': [31.3], 'VTB': [0.0182], 'MTSS': [257.2], 'RNFT': [104.8]}
-#
-#
-# x = test_high_volatility(old, new, 5, ['BRENT', 'OIL', 'GAZ'])
-# print(x)
+# #
+old = {'GAZ': {'value': 414.0, 'delta': None}, 'BRENT': {'value': 77.77, 'delta': 1.4}, 'SnP': {'value': None, 'delta': 0.4}, 'DJ': {'value': None, 'delta': None}, 'FTSE': {'value': None, 'delta': None}, 'DAX': {'value': 15, 'delta': None}, 'EURUSD': {'value': 1.123, 'delta': None}, 'CNY': {'value': 12.2, 'delta': None}, 'USD': {'value': 195.12, 'delta': None}, 'EUR': {'value': 101.12, 'delta': None}, 'GAZP': {'value': 0.0, 'delta': None}, 'NVTK': {'value': 0.0, 'delta': None}, 'ROSN': {'value': 0.0, 'delta': None}, 'RNFT': {'value': 0.0, 'delta': None}, 'SNGS': {'value': 0.0, 'delta': None}, 'LKOH': {'value': 0.0, 'delta': None}, 'GMKN': {'value': 0.0, 'delta': None}, 'CHMF': {'value': 0.0, 'delta': None}, 'SBER': {'value': 0.0, 'delta': None}, 'AFLT': {'value': 0.0, 'delta': None}, 'AFKS': {'value': 0.0, 'delta': None}, 'MTSS': {'value': 0.0, 'delta': None}, 'XOM': {'value': 107.5, 'delta': None}, 'AMZN': {'value': 130.0, 'delta': None}}
+new = {'GAZ': {'value': 614.0, 'delta': None}, 'BRENT': {'value': 77.77, 'delta': 1.4}, 'SnP': {'value': None, 'delta': 0.4}, 'DJ': {'value': None, 'delta': None}, 'FTSE': {'value': None, 'delta': None}, 'DAX': {'value': None, 'delta': None}, 'EURUSD': {'value': 3.123, 'delta': None}, 'CNY': {'value': 12.2, 'delta': None}, 'USD': {'value': 95.12, 'delta': None}, 'EUR': {'value': 101.12, 'delta': None}, 'GAZP': {'value': 0.0, 'delta': None}, 'NVTK': {'value': 0.0, 'delta': None}, 'ROSN': {'value': 0.0, 'delta': None}, 'RNFT': {'value': 0.0, 'delta': None}, 'SNGS': {'value': 0.0, 'delta': None}, 'LKOH': {'value': 0.0, 'delta': None}, 'GMKN': {'value': 0.0, 'delta': None}, 'CHMF': {'value': 0.0, 'delta': None}, 'SBER': {'value': 0.0, 'delta': None}, 'AFLT': {'value': 0.0, 'delta': None}, 'AFKS': {'value': 0.0, 'delta': None}, 'MTSS': {'value': 0.0, 'delta': None}, 'XOM': {'value': 107.5, 'delta': None}, 'AMZN': {'value': 130.0, 'delta': None}}
+
+
+x = test_high_volatility(old, new, 5)
+print(x)
