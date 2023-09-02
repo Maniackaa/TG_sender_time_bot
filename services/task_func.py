@@ -32,9 +32,9 @@ def get_task_to_send(session) -> list[Task]:
         )
 
     # Если сегодня суббота или вс, то только плановые
-    # if now_date.weekday() in (5, 6):
-    #     logger.debug('Выходной')
-    #     today_tasks = today_tasks.filter(Task.type == 'plane_msg')
+    if now_date.weekday() in (5, 6):
+        logger.debug('Выходной')
+        today_tasks = today_tasks.filter(Task.type == 'plane_msg')
 
     all_tasks = today_tasks.filter(
         or_(
