@@ -43,7 +43,6 @@ def get_task_to_send(session) -> list[Task]:
             Task.last_send is None,
         )
     ).all()
-    print(all_tasks)
     logger.debug(f'Все не отправленные задачи: {all_tasks}')
     if all_tasks:
         # Проверим не пора ли отправлять их.
@@ -98,7 +97,15 @@ def make_task_and_get_message(task_to_send: Task,
     """Выполнение задачи. Изменение last_send"""
     try:
         alarm_list = []
-        if task_to_send.type == 'smser':
+        if task_to_send.type == 'init':
+            message = ''
+            message_dict = get_smser_dict()
+            if message_dict.get('GAZP').get('value') == 0 and message_dict.get('SBER').get('value') == 0:
+                alarm_list.append('System OK')
+            else:
+                alarm_list.append('Система НЕ готова !!!')
+
+        elif task_to_send.type == 'smser':
             logger.debug('ВЫполняется задача типа smser')
             # Прочитаем файл
             raw_message = read_file()
@@ -135,10 +142,10 @@ def make_task_and_get_message(task_to_send: Task,
             # Сохраним файл-смс в архив
             save_msg_to_db(message_dict, task_to_send.id, session)
 
-        if task_to_send.type == 'msg' or task_to_send.type == 'plane_msg':
+        elif task_to_send.type == 'msg' or task_to_send.type == 'plane_msg':
             message = task_to_send.message
 
-        if task_to_send.type == 'last_msg':
+        elif task_to_send.type == 'last_msg':
             day_week = datetime.datetime.now().weekday()
             message = 'Хорошего вечера!'\
                       if day_week != 4 \
